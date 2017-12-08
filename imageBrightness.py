@@ -1,6 +1,7 @@
 import numpy
 import cv2
 import time
+from scipy import stats
 
 
 def current_millis():
@@ -9,6 +10,15 @@ def current_millis():
 
 def duration(start, end, msg='', prompt='Duration'):
     print '{}: {}, {} ms.\n'.format(prompt, msg, end - start)
+
+
+def ci(x, confidence=0.95):
+    n = len(x)
+    m, se = numpy.mean(x), stats.sem(x)
+    z = stats.t.ppf((1 + confidence) / 2., n - 1)
+    #z = 1.96
+    h = z*se
+    return m, m-h, m+h
 
 
 closedImg = '/var/vms/pics/2017-10-26_auto/pic_1509000612.jpg'  # closed
@@ -38,7 +48,7 @@ start = current_millis()
 print 'red {} sd {}'.format(numpy.average(r), numpy.std(r))
 print 'green {} sd {}'.format(numpy.average(g), numpy.std(g))
 print 'blue {} sd {}'.format(numpy.average(b), numpy.std(b))
-duration(start, current_millis(), 'average')
+duration(start, current_millis(), 'average + std')
 
 start = current_millis()
 rf = r.flatten()
@@ -61,14 +71,22 @@ duration(start, current_millis(), 'sort')
 
 start = current_millis()
 print "avg:"
-print numpy.average(rRand)
-print numpy.average(gRand)
-print numpy.average(bRand)
-duration(start, current_millis(), 'averageSampled')
+ru = numpy.average(rRand)
+gu = numpy.average(gRand)
+bu = numpy.average(bRand)
+
+rsem = stats.sem(rRand, ddof=1)
+gsem = stats.sem(gRand, ddof=1)
+bsem = stats.sem(bRand, ddof=1)
+
+print 'red {} sd {}'.format(ru, rsem)
+print 'green {} sd {}'.format(gu, gsem)
+print 'blue {} sd {}'.format(bu, bsem)
+
+duration(start, current_millis(), 'averageSampled + sem')
 
 start = current_millis()
-print "std:"
-print numpy.std(rRand) / numpy.sqrt(sc)
-print numpy.std(gRand) / numpy.sqrt(sc)
-print numpy.std(bRand) / numpy.sqrt(sc)
-duration(start, current_millis(), 'stdSampled')
+print ci(rRand)
+print ci(gRand)
+print ci(bRand)
+duration(start, current_millis(), 'ci')
