@@ -22,9 +22,17 @@ start = current_millis()
 imgO = cv2.imread(openImg)
 duration(start, current_millis(), 'read open img')
 
+img = imgC
+
 start = current_millis()
-[b, g, r] = cv2.split(imgC)
+[b, g, r] = cv2.split(img)
 duration(start, current_millis(), 'split')
+
+start = current_millis()
+b = img[:, :, 0]
+g = img[:, :, 1]
+r = img[:, :, 2]
+duration(start, current_millis(), 'split numpy')
 
 start = current_millis()
 print 'red {} sd {}'.format(numpy.average(r), numpy.std(r))
