@@ -15,7 +15,7 @@ def readArgs():
     path = ''
     model = 'shutterModel.pkl'
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hpm:", ["path=", "model="])
+        opts, args = getopt.getopt(sys.argv[1:], "hp:m:", ["path=", "model="])
     except getopt.GetoptError:
         print sys.argv[0], '-p <path> -m <model>'
         sys.exit(2)
