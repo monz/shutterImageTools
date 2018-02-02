@@ -18,7 +18,7 @@ def readMetadata(path, extractKeys):
     return data
 
 
-def outputData(data, keys, delimiter):
+def outputData(filename, data, keys, delimiter):
     orderedList = []
     for key in keys:
         try:
@@ -30,7 +30,7 @@ def outputData(data, keys, delimiter):
             orderedList.append(value)
         except:
             print "Could not extract value!"
-    print delimiter.join(orderedList)
+    print filename + delimiter + delimiter.join(orderedList)
 
 
 def printHeader(data, delimiter):
@@ -64,8 +64,10 @@ if __name__ == '__main__':
 
     extractKeys = ['EXIF ExposureTime', 'EXIF ISOSpeedRatings', 'EXIF ShutterSpeedValue', 'EXIF BrightnessValue']
     delimiter = ','
-    printHeader(extractKeys, delimiter)
+    header = list(extractKeys) # list(...) creates a copy of the list!
+    header.insert(0, "filename")
+    printHeader(header, delimiter)
     for (dirpath, dirnames, filenames) in os.walk(path):
         for filename in filenames:
             data = readMetadata(os.path.join(dirpath, filename), extractKeys)
-            outputData(data, extractKeys, delimiter)
+            outputData(filename, data, extractKeys, delimiter)
