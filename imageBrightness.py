@@ -1,6 +1,10 @@
-import numpy
-import cv2
+import getopt
+import os
+import sys
 import time
+
+import cv2
+import numpy
 from scipy import stats
 
 
@@ -16,77 +20,64 @@ def ci(x, confidence=0.95):
     n = len(x)
     m, se = numpy.mean(x), stats.sem(x)
     z = stats.t.ppf((1 + confidence) / 2., n - 1)
-    #z = 1.96
     h = z*se
     return m, m-h, m+h
 
 
-closedImg = '/var/vms/pics/2017-10-26_auto/pic_1509000612.jpg'  # closed
-openImg = '/var/vms/pics/2017-10-26_auto/pic_1509012052.jpg'  # open
+def split(img):
+    r = img[:, :, 2]
+    g = img[:, :, 1]
+    b = img[:, :, 0]
+    return [r,g,b]
 
-start = current_millis()
-imgC = cv2.imread(closedImg)
-duration(start, current_millis(), 'read closed img')
+def flatten(r,g,b):
+    rf = r.flatten()
+    gf = g.flatten()
+    bf = b.flatten()
+    return [rf, gf, bf]
 
-start = current_millis()
-imgO = cv2.imread(openImg)
-duration(start, current_millis(), 'read open img')
 
-img = imgC
+def brightness(img, n):
+    [r,g,b] = split(img)
+    [red,green,blue] = flatten(r,g,b)
 
-start = current_millis()
-[b, g, r] = cv2.split(img)
-duration(start, current_millis(), 'split')
+    rRed = numpy.random.choice(red, n)
+    rGreen = numpy.random.choice(green, n)
+    rBlue = numpy.random.choice(blue, n)
 
-start = current_millis()
-b = img[:, :, 0]
-g = img[:, :, 1]
-r = img[:, :, 2]
-duration(start, current_millis(), 'split numpy')
+    bRed = numpy.average(rRed)
+    bGreen = numpy.average(rGreen)
+    bBlue = numpy.average(rBlue)
 
-start = current_millis()
-print 'red {} sd {}'.format(numpy.average(r), numpy.std(r))
-print 'green {} sd {}'.format(numpy.average(g), numpy.std(g))
-print 'blue {} sd {}'.format(numpy.average(b), numpy.std(b))
-duration(start, current_millis(), 'average + std')
+    return [bRed, bGreen, bBlue]
 
-start = current_millis()
-rf = r.flatten()
-gf = g.flatten()
-bf = b.flatten()
-duration(start, current_millis(), 'flatten')
+def readArgs():
+    path = ''
+    sampleCount = 10000
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "hp:n:", ["path=", "sampleCount="])
+    except getopt.GetoptError:
+        print sys.argv[0], '-p <path>'
+        sys.exit(2)
+    for opt, arg in opts:
+        if opt == '-h':
+            print sys.argv[0], '-p <path> -n <sampleCount>'
+            sys.exit()
+        elif opt in ("-p", "--path"):
+            path = arg
+        elif opt in ("-n", "--sampleCount"):
+            sampleCount = arg
 
-start = current_millis()
-sc = 10000
-rRand = numpy.random.choice(rf, sc)
-gRand = numpy.random.choice(gf, sc)
-bRand = numpy.random.choice(bf, sc)
-duration(start, current_millis(), 'sample')
+    return path, sampleCount
 
-start = current_millis()
-rRand = numpy.sort(rRand)
-gRand = numpy.sort(gRand)
-bRand = numpy.sort(bRand)
-duration(start, current_millis(), 'sort')
 
-start = current_millis()
-print "avg:"
-ru = numpy.average(rRand)
-gu = numpy.average(gRand)
-bu = numpy.average(bRand)
+if __name__ == '__main__':
+    # read command line options
+    path, sampleCount = readArgs()
 
-rsem = stats.sem(rRand, ddof=1)
-gsem = stats.sem(gRand, ddof=1)
-bsem = stats.sem(bRand, ddof=1)
+    for (dirpath, dirnames, filenames) in os.walk(path):
+        for filename in filenames:
+            img = cv2.imread(os.path.join(dirpath, filename))
+            [r,g,b] = brightness(img, sampleCount)
+            print '{:s}:{:.3f}:{:.3f}:{:.3f}'.format(filename, r, g, b)
 
-print 'red {} sd {}'.format(ru, rsem)
-print 'green {} sd {}'.format(gu, gsem)
-print 'blue {} sd {}'.format(bu, bsem)
-
-duration(start, current_millis(), 'averageSampled + sem')
-
-start = current_millis()
-print ci(rRand)
-print ci(gRand)
-print ci(bRand)
-duration(start, current_millis(), 'ci')
