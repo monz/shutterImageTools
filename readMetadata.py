@@ -21,12 +21,15 @@ def readMetadata(path, extractKeys):
 def outputData(data, keys, delimiter):
     orderedList = []
     for key in keys:
-        expression = str(data[key])
-        if key == 'EXIF ISOSpeedRatings':
-            value = str(evaluateValue(expression))
-        else:
-            value = '{:.3f}'.format(evaluateValue(expression))
-        orderedList.append(value)
+        try:
+            expression = str(data[key])
+            if key == 'EXIF ISOSpeedRatings':
+                value = str(evaluateValue(expression))
+            else:
+                value = '{:.3f}'.format(evaluateValue(expression))
+            orderedList.append(value)
+        except:
+            print "Could not extract value!"
     print delimiter.join(orderedList)
 
 
