@@ -1,11 +1,13 @@
-import re
-import sys
 import getopt
 import os
+import re
+import sys
+
+import numpy as np
 from scipy.misc.pilutil import imread
-from sklearn.model_selection import train_test_split
-from sklearn.externals import joblib
 from sklearn import svm
+from sklearn.externals import joblib
+from sklearn.model_selection import train_test_split
 
 
 def flatten(filename):
@@ -52,17 +54,40 @@ if __name__ == '__main__':
     # read command line options
     path = readArgs()
 
+    random_state = np.random.RandomState(0)
     regex = re.compile("(closed|open)")
     flat, targ = trainInfo(path, regex)
 
-    X_train, X_test, y_train, y_test = train_test_split(flat, targ, test_size = 0.3, random_state = 0)
+    X_train, X_test, y_train, y_test = train_test_split(flat, targ, test_size = 0.3, random_state = random_state)
 
     clf = svm.SVC(kernel='linear', C=1)
     clf.fit(X_train, y_train)
 
     joblib.dump(clf, 'shutterModel.pkl')
 
-    print clf.score(X_test, y_test)
+    # evaluate model
+    y_score = clf.predict(X_test)
 
-    print clf.coef_
-    print clf.intercept_
+    truePositives = 0
+    falsePositives = 0
+    falseNegatives = 0
+    n = len(y_test)
+    for i in range(0, n):
+        if (y_test[i] == 'closed') and (y_score[i] == 'closed'):
+            truePositives += 1
+        elif (y_test[i] == 'closed') and (y_score[i] == 'open'):
+            falsePositives += 1
+        elif (y_test[i] == 'open') and (y_score[i] == 'closed'):
+            falseNegatives += 1
+
+    precision = float(truePositives) / (truePositives + falsePositives)
+    recall = float(truePositives) / (truePositives + falseNegatives)
+    fscore = float(2*(precision*recall)) / (precision + recall)
+
+    print("TruePositives: ", truePositives)
+    print("FalsePositives: ", falsePositives)
+    print("falseNegatives: ", falseNegatives)
+
+    print("Precision: ", precision)
+    print("Recall: ", recall)
+    print("F-Score: ", fscore)
