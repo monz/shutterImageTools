@@ -50,7 +50,7 @@ def readArgs():
         sys.exit(2)
     for opt, arg in opts:
         if opt == '-h':
-            print sys.argv[0], '-p <path> -n <sampleCount>'
+            print sys.argv[0], '-p <path>'
             sys.exit()
         elif opt in ("-p", "--path"):
             path = arg
