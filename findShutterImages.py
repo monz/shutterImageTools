@@ -17,7 +17,7 @@ def readArgs():
     try:
         opts, args = getopt.getopt(sys.argv[1:], "hp:m:", ["path=", "model="])
     except getopt.GetoptError:
-        print sys.argv[0], '-p <path> -m <model>'
+        print sys.argv[0], '-h (for help)'
         sys.exit(2)
     for opt, arg in opts:
         if opt == '-h':

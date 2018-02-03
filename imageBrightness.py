@@ -57,7 +57,7 @@ def readArgs():
     try:
         opts, args = getopt.getopt(sys.argv[1:], "hp:n:", ["path=", "sampleCount="])
     except getopt.GetoptError:
-        print sys.argv[0], '-p <path>'
+        print sys.argv[0], '-h (for help)'
         sys.exit(2)
     for opt, arg in opts:
         if opt == '-h':
